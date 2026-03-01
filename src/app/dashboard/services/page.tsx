@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import StaticEntityIndexPage from "@/components/features/entities/static-entity-index-page";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  getEntityFilterOptionsCached,
+  getServicesIndexCached,
+} from "@/lib/server-data";
 import { createSearchParamsCache, parseAsString } from "nuqs/server";
 import { generatePageTitle } from "@/lib/metadata-utils";
 
@@ -43,18 +47,10 @@ export default async function ServicesPage({
     initial = {};
   }
 
-  // Fetch data directly using Supabase (not cached functions)
-  const { data: services, error } = await supabase
-    .from("services")
-    .select("*")
-    .order("name", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching services:", error);
-    throw new Error("Failed to fetch services");
-  }
-
-  const items = services || [];
+  const [items, filterOptions] = await Promise.all([
+    getServicesIndexCached(supabase),
+    getEntityFilterOptionsCached(supabase),
+  ]);
 
   return (
     <StaticEntityIndexPage
@@ -62,6 +58,7 @@ export default async function ServicesPage({
       supabase={supabase as any}
       initial={initial}
       items={items}
+      filterOptions={filterOptions}
     />
   );
 }

@@ -161,20 +161,10 @@ export default function Sidebar({ userEmail = null }: SidebarProps) {
 
                 const showDivider = item.name === "Services";
 
-                const getPrefetchEntity = (href: string) => {
-                  if (href.includes("/organizations")) return "organizations";
-                  if (href.includes("/contacts")) return "contacts";
-                  if (href.includes("/offers")) return "offers";
-                  if (href.includes("/projects")) return "projects";
-                  if (href.includes("/services")) return "services";
-                  return undefined;
-                };
-
                 return (
                   <SidebarMenuItem key={item.name}>
                     <NextLinkWithPrefetch
                       href={item.href}
-                      prefetchEntity={getPrefetchEntity(item.href)}
                       className={`group flex items-center py-3 text-base lg:py-2 lg:text-sm font-medium rounded-md relative ${
                         isActiveLink
                           ? "bg-neutral-100 dark:bg-[var(--secondary)] text-neutral-900 dark:text-neutral-300"

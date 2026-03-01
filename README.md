@@ -64,6 +64,20 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) and log in.
 
+## Performance Probe
+
+Use the built-in dashboard probe to compare cold vs warm cached read timings:
+
+1. Open `/dashboard/performance`
+2. Click **Run Performance Probe**
+3. Compare pass 1 vs pass 2 timings
+
+The probe uses the authenticated API endpoint:
+
+- `GET /api/perf/dashboard?passes=2`
+
+It measures cached reads for dashboard home data, entity index datasets, and shared filter options.
+
 ## Branding
 
 The app ships with placeholder branding ("Envisioning"). To use your own brand, search and replace across the codebase:

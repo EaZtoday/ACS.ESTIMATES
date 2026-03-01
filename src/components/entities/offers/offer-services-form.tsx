@@ -2,7 +2,6 @@
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Plus, Check, Minus } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 import type { Service } from "@/lib/api/services";
 
 import { Button } from "@/components/ui/primitives/button";
@@ -11,6 +10,7 @@ import { Textarea } from "@/components/ui/primitives/textarea";
 import { Card, CardContent } from "@/components/ui/primitives/card";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetchers";
+import { getLucideIconComponent } from "@/components/ui/composite/lucide-icons";
 
 interface OfferServicesFormProps {
   initialData: Record<string, unknown>;
@@ -351,12 +351,7 @@ const OfferServicesForm = forwardRef<
     const service = services.find((s) => s.id === serviceId);
     if (!service || !service.icon) return null;
 
-    const IconComponent = (
-      LucideIcons as unknown as Record<
-        string,
-        React.ComponentType<{ className?: string }>
-      >
-    )[service.icon];
+    const IconComponent = getLucideIconComponent(service.icon, "Package");
     return IconComponent ? <IconComponent className="h-4 w-4" /> : null;
   };
 

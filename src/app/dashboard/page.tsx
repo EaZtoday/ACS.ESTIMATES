@@ -11,24 +11,16 @@ import DashboardPageWrapper from "@/components/layouts/pages/dashboard-page-wrap
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import MyProjectsSidebar from "@/components/dashboard/my-projects-sidebar";
 import { generatePageTitle } from "@/lib/metadata-utils";
+import { getDashboardHomeDataCached } from "@/lib/server-data";
 import {
   type OfferHistoryPoint,
   OfferHistoryBarChart,
 } from "@/components/features/analytics/offer-history-bar-chart";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: generatePageTitle("Dashboard", "/dashboard"),
   };
-}
-
-interface DashboardStats {
-  organizations: number;
-  contacts: number;
-  projects: number;
-  offers: number;
 }
 
 interface RawOfferRow {
@@ -122,28 +114,22 @@ function buildOfferHistory(
   return { points, currencyCode };
 }
 
-async function getDashboardStats(supabase: any): Promise<DashboardStats> {
-  const [orgs, contacts, projects, offers] = await Promise.all([
-    supabase.from("organizations").select("*", { count: "exact", head: true }),
-    supabase.from("contacts").select("*", { count: "exact", head: true }),
-    supabase.from("projects").select("*", { count: "exact", head: true }),
-    supabase.from("offers").select("*", { count: "exact", head: true }),
-  ]);
-
-  return {
-    organizations: orgs.count ?? 0,
-    contacts: contacts.count ?? 0,
-    projects: projects.count ?? 0,
-    offers: offers.count ?? 0,
-  };
-}
-
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
-  let stats: DashboardStats;
+  let stats: {
+    organizations: number;
+    contacts: number;
+    projects: number;
+    offers: number;
+  };
+  let activeProjects: any[] = [];
+  let offerRows: RawOfferRow[] = [];
 
   try {
-    stats = await getDashboardStats(supabase);
+    const data = await getDashboardHomeDataCached(supabase);
+    stats = data.stats;
+    activeProjects = data.activeProjects;
+    offerRows = data.offersForHistory as RawOfferRow[];
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     return (
@@ -155,24 +141,6 @@ export default async function DashboardPage() {
     );
   }
 
-  const [
-    { data: activeProjects },
-    { data: offersForHistory },
-  ] = await Promise.all([
-    supabase
-      .from("projects")
-      .select(`
-        *,
-        organization:organizations(id, name)
-      `)
-      .eq("status", "Active")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("offers")
-      .select("id, total_amount, is_accepted, created_at, valid_until, currency"),
-  ]);
-
-  const offerRows = (offersForHistory || []) as RawOfferRow[];
   const offerHistory = buildOfferHistory(offerRows, 36);
 
   const cards = [

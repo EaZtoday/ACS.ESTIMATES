@@ -4,14 +4,11 @@ import UsersList from "@/components/features/settings/users-list";
 import PaymentTermsList from "@/components/features/settings/payment-terms-list";
 import DeliveryConditionsList from "@/components/features/settings/delivery-conditions-list";
 import OfferLinksList from "@/components/features/settings/offer-links-list";
-
-export const dynamic = "force-dynamic";
-
 export default function SettingsPage() {
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <div>
-        <h1 className="page-title mb-6">Settings</h1>
+        <h1 className="page-title mb-4">Settings</h1>
       </div>
 
       <section>
@@ -21,13 +18,13 @@ export default function SettingsPage() {
       <hr className="border-[var(--border)]" />
 
       <section>
-        <UsersList />
+        <CorporateEntitiesList />
       </section>
 
       <hr className="border-[var(--border)]" />
 
       <section>
-        <CorporateEntitiesList />
+        <UsersList />
       </section>
 
       <hr className="border-[var(--border)]" />

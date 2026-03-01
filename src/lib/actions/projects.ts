@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { projectService } from "@/lib/api/projects";
 import { projectCreateSchema, projectUpdateSchema } from "@/lib/validation/schemas";
 import {
@@ -29,6 +29,9 @@ export async function createProject(
 
     // Revalidate paths
     revalidatePath("/dashboard/projects");
+    revalidateTag("projects", "max");
+    revalidateTag("dashboard", "max");
+    revalidateTag("settings", "max");
 
     // Return success response instead of redirecting
     return createActionResponse(project, null);
@@ -70,6 +73,9 @@ export async function updateProject(
     // Revalidate paths
     revalidatePath("/dashboard/projects");
     revalidatePath(`/dashboard/projects/${projectId}`);
+    revalidateTag("projects", "max");
+    revalidateTag("dashboard", "max");
+    revalidateTag("settings", "max");
 
     // Return success response instead of redirecting
     return createActionResponse(project, null);
@@ -93,6 +99,9 @@ export async function deleteProject(
     
     // Revalidate paths
     revalidatePath("/dashboard/projects");
+    revalidateTag("projects", "max");
+    revalidateTag("dashboard", "max");
+    revalidateTag("settings", "max");
     
     return createActionResponse({ success: true });
   } catch (error) {

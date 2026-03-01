@@ -4,12 +4,25 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import * as LucideIcons from "lucide-react";
+import {
+  Bot,
+  Brain,
+  CheckCircle2,
+  Code,
+  CreditCard,
+  Database,
+  FileText,
+  Info,
+  Lightbulb,
+  Lock,
+  Server,
+} from "lucide-react";
 import AcceptOfferStatus from "./accept-offer-status";
 import PdfExportButton from "@/components/features/export/pdf-export-wrapper";
 import { formatCurrency as formatCurrencyUtil } from "@/lib/utils";
 import AcceptOfferWidget from "./accept-offer-widget";
 import { formatDateLong } from "@/lib/utils";
+import { getLucideIconComponent } from "@/components/ui/composite/lucide-icons";
 
 function getCountryName(countryCode?: string | null) {
   if (!countryCode) return "";
@@ -286,11 +299,8 @@ export default function PublicOfferLayout({
     groupType?: string,
     iconName?: string
   ) => {
-    if (iconName && (LucideIcons as any)[iconName]) {
-      const Icon = (LucideIcons as any)[iconName] as React.ComponentType<{
-        size?: number;
-        className?: string;
-      }>;
+    if (iconName) {
+      const Icon = getLucideIconComponent(iconName, "FileText");
       return (
         <Icon
           size={20}
@@ -302,42 +312,42 @@ export default function PublicOfferLayout({
     const group = groupType;
     if (name.includes("database") || name.includes("storage"))
       return (
-        <LucideIcons.Database
+        <Database
           size={20}
           className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
         />
       );
     if (name.includes("server") || name.includes("hosting"))
       return (
-        <LucideIcons.Server
+        <Server
           size={20}
           className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
         />
       );
     if (name.includes("development") || name.includes("code"))
       return (
-        <LucideIcons.Code
+        <Code
           size={20}
           className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
         />
       );
     if (name.includes("license") || name.includes("subscription"))
       return (
-        <LucideIcons.Lock
+        <Lock
           size={20}
           className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
         />
       );
     if (name.includes("ai") || name.includes("intelligence"))
       return (
-        <LucideIcons.Brain
+        <Brain
           size={20}
           className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
         />
       );
     if (name.includes("automation") || name.includes("bot"))
       return (
-        <LucideIcons.Bot
+        <Bot
           size={20}
           className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
         />
@@ -345,35 +355,35 @@ export default function PublicOfferLayout({
     switch (group) {
       case "Base":
         return (
-          <LucideIcons.Database
+          <Database
             size={20}
             className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
           />
         );
       case "Optional":
         return (
-          <LucideIcons.CreditCard
+          <CreditCard
             size={20}
             className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
           />
         );
       case "License":
         return (
-          <LucideIcons.Lock
+          <Lock
             size={20}
             className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
           />
         );
       case "Research":
         return (
-          <LucideIcons.Lightbulb
+          <Lightbulb
             size={20}
             className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
           />
         );
       default:
         return (
-          <LucideIcons.FileText
+          <FileText
             size={20}
             className="mr-2 flex-shrink-0 text-neutral-700 dark:text-neutral-300"
           />
@@ -697,7 +707,7 @@ export default function PublicOfferLayout({
                                       className="ml-2 text-muted-foreground hover:text-foreground"
                                       aria-label="Service details"
                                     >
-                                      <LucideIcons.Info className="h-4 w-4" />
+                                      <Info className="h-4 w-4" />
                                     </Link>
                                   )}
                                   {service.is_recurring && (
@@ -810,14 +820,10 @@ export default function PublicOfferLayout({
                       (displayOffer as any).selected_links.map(
                         (l: any, i: number) => {
                           const iconName = normalizeIconName(l.icon);
-                          const Icon =
-                            iconName && (LucideIcons as any)[iconName]
-                              ? ((LucideIcons as any)[
-                                  iconName
-                                ] as React.ComponentType<{
-                                  className?: string;
-                                }>)
-                              : null;
+                          const Icon = getLucideIconComponent(
+                            iconName || undefined,
+                            "Link",
+                          );
                           return (
                             <a
                               key={i}
@@ -826,11 +832,7 @@ export default function PublicOfferLayout({
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground h-10 px-4 text-sm"
                             >
-                              {Icon ? (
-                                <Icon className="h-5 w-5" />
-                              ) : (
-                                <LucideIcons.Link className="h-5 w-5" />
-                              )}
+                              <Icon className="h-5 w-5" />
                               {l.title}
                             </a>
                           );
@@ -847,7 +849,7 @@ export default function PublicOfferLayout({
                       {!(displayOffer as any).is_accepted ? (
                         <>
                           <div className="flex items-center gap-2 mb-2">
-                            <LucideIcons.CheckCircle2 className="h-5 w-5" />
+                            <CheckCircle2 className="h-5 w-5" />
                             <span className="text-sm font-medium">
                               Accept this offer
                             </span>

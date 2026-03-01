@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import StaticEntityIndexPage from "@/components/features/entities/static-entity-index-page";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  getEntityFilterOptionsCached,
+  getOrganizationsIndexCached,
+} from "@/lib/server-data";
 import { createSearchParamsCache, parseAsString } from "nuqs/server";
 import { generatePageTitle } from "@/lib/metadata-utils";
 
@@ -43,27 +47,10 @@ export default async function OrganizationsPage({
     initial = {};
   }
 
-  // Fetch data directly using Supabase (not cached functions)
-  const { data: organizations, error } = await supabase
-    .from("organizations")
-    .select(
-      `
-      *,
-      contacts!inner(count)
-    `
-    )
-    .order("name", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching organizations:", error);
-    throw new Error("Failed to fetch organizations");
-  }
-
-  // Transform the data to include contact count
-  const items = (organizations || []).map((org: any) => ({
-    ...org,
-    contact_count: Array.isArray(org.contacts) ? org.contacts.length : 0,
-  }));
+  const [items, filterOptions] = await Promise.all([
+    getOrganizationsIndexCached(supabase),
+    getEntityFilterOptionsCached(supabase),
+  ]);
 
   return (
     <StaticEntityIndexPage
@@ -71,6 +58,7 @@ export default async function OrganizationsPage({
       supabase={supabase as any}
       initial={initial}
       items={items}
+      filterOptions={filterOptions}
     />
   );
 }

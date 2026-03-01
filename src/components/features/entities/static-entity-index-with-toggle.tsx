@@ -10,6 +10,7 @@ import {
 import { EntityErrorBoundary } from "@/components/error-boundaries/entity-error-boundary";
 import { Suspense } from "react";
 import EntityIndexClient from "./entity-index-client";
+import type { EntityFilterOptions } from "@/lib/server-data";
 
 interface StaticEntityIndexWithToggleProps {
   entity: Parameters<typeof EntityIndexClient>[0]["entity"];
@@ -18,6 +19,7 @@ interface StaticEntityIndexWithToggleProps {
   title: string;
   createLink: string;
   createButtonText: string;
+  filterOptions: EntityFilterOptions;
 }
 
 export default function StaticEntityIndexWithToggle({
@@ -27,6 +29,7 @@ export default function StaticEntityIndexWithToggle({
   title,
   createLink,
   createButtonText,
+  filterOptions,
 }: StaticEntityIndexWithToggleProps) {
   const showCreateButton = Boolean(createLink && createButtonText);
 
@@ -55,6 +58,7 @@ export default function StaticEntityIndexWithToggle({
             items={items}
             initial={initial}
             hideHeader={true}
+            filterOptions={filterOptions}
           />
         </Suspense>
       </EntityErrorBoundary>

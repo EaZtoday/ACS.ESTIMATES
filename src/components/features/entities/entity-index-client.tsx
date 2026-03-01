@@ -17,7 +17,6 @@ import {
   Check,
   X,
 } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/primitives/button";
 import { StatusPill } from "@/components/ui/feedback/status-pill";
@@ -40,14 +39,15 @@ import {
 import {
   getOrganizationFilters,
 } from "@/components/ui/composite/table-filters";
-import { useFilterOptions } from "@/hooks/use-filter-options";
 import { useRouter } from "next/navigation";
+import type { EntityFilterOptions } from "@/lib/server-data";
 // Import Server Actions for delete operations
 import { deleteContact } from "@/lib/actions/contacts";
 import { deleteOrganization } from "@/lib/actions/organizations";
 import { deleteService } from "@/lib/actions/services";
 import { deleteProject } from "@/lib/actions/projects";
 import { deleteOffer } from "@/lib/actions/offers";
+import { getLucideIconComponent } from "@/components/ui/composite/lucide-icons";
 
 interface BaseItem {
   id: string;
@@ -141,6 +141,7 @@ export interface EntityIndexClientProps<T extends BaseItem = BaseItem> {
   items: T[];
   initial?: Partial<Record<string, string>>;
   hideHeader?: boolean;
+  filterOptions: EntityFilterOptions;
 }
 
 export default function EntityIndexClient<T extends BaseItem = BaseItem>({
@@ -148,6 +149,7 @@ export default function EntityIndexClient<T extends BaseItem = BaseItem>({
   items,
   initial,
   hideHeader = false,
+  filterOptions,
 }: EntityIndexClientProps<T>) {
   const router = useRouter();
 
@@ -289,8 +291,6 @@ export default function EntityIndexClient<T extends BaseItem = BaseItem>({
   // Keep a local copy for optimistic UI
   const [localItems, setLocalItems] = useState<T[]>(items);
   useEffect(() => setLocalItems(items), [items]);
-
-  const { options: filterOptions } = useFilterOptions();
 
   const handleRowClick = useCallback(
     (item: T) => {
@@ -642,9 +642,10 @@ export default function EntityIndexClient<T extends BaseItem = BaseItem>({
             width: "300px",
             cell: (s: any) => {
               const IconComponent =
-                (s.icon &&
-                  (LucideIcons as Record<string, any>)[String(s.icon)]) ||
-                (LucideIcons as Record<string, any>)["Package"];
+                getLucideIconComponent(
+                  s.icon ? String(s.icon) : undefined,
+                  "Package",
+                );
               return (
                 <div className="min-w-0">
                   <Link
@@ -781,18 +782,11 @@ export default function EntityIndexClient<T extends BaseItem = BaseItem>({
                   <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-muted-foreground">
                     {servicesMeta.map((service) => {
                       const IconComponent =
-                        service.iconName &&
-                        (LucideIcons as Record<string, any>)[
-                          service.iconName
-                        ];
+                        getLucideIconComponent(service.iconName, "Package");
 
                       return (
                         <span key={service.id} title={service.label}>
-                          {IconComponent ? (
-                            <IconComponent className="h-3.5 w-3.5" />
-                          ) : (
-                            <Package className="h-3.5 w-3.5" />
-                          )}
+                          <IconComponent className="h-3.5 w-3.5" />
                         </span>
                       );
                     })}

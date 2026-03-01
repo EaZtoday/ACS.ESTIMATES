@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Gauge,
   Building2,
   FileText,
   Users,
@@ -21,6 +22,11 @@ export function getDashboardNavigation(): NavigationItem[] {
       href: "/dashboard",
       icon: LayoutDashboard,
       exact: true,
+    },
+    {
+      name: "Performance",
+      href: "/dashboard/performance",
+      icon: Gauge,
     },
     {
       name: "Organizations",

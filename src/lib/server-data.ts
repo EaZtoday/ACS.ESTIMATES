@@ -8,6 +8,33 @@ import { unstable_cache } from 'next/cache';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DbClient = any;
 
+export interface EntityFilterOptions {
+  currencies: Array<{ value: string; label: string }>;
+  organizations: Array<{ value: string; label: string }>;
+  contacts: Array<{ value: string; label: string }>;
+  projects: Array<{ value: string; label: string }>;
+}
+
+export interface DashboardStats {
+  organizations: number;
+  contacts: number;
+  projects: number;
+  offers: number;
+}
+
+export interface DashboardHomeData {
+  stats: DashboardStats;
+  activeProjects: any[];
+  offersForHistory: Array<{
+    id: string;
+    total_amount: number | null;
+    is_accepted: boolean | null;
+    created_at: string | null;
+    valid_until: string | null;
+    currency: string | null;
+  }>;
+}
+
 // Generic server data fetcher
 async function fetchFromTable<T>(
   table: string,
@@ -365,6 +392,239 @@ export const getDashboardData = unstable_cache(
     tags: ['organizations', 'contacts', 'offers', 'services', 'projects']
   }
 );
+
+export async function getEntityFilterOptions(
+  supabase: DbClient,
+): Promise<EntityFilterOptions> {
+  const fallbackCurrencies = [
+    { value: "EUR", label: "EUR (€)" },
+    { value: "USD", label: "USD ($)" },
+    { value: "GBP", label: "GBP (£)" },
+  ];
+
+  const [currenciesResult, organizationsResult, contactsResult, projectsResult] =
+    await Promise.all([
+      supabase
+        .from("currencies")
+        .select("code, symbol, is_enabled")
+        .eq("is_enabled", true),
+      supabase
+        .from("organizations")
+        .select("id, name")
+        .order("name", { ascending: true }),
+      supabase.from("contacts").select("id, name").order("name", { ascending: true }),
+      supabase
+        .from("projects")
+        .select("id, title")
+        .order("title", { ascending: true }),
+    ]);
+
+  const currencies =
+    !currenciesResult.error && Array.isArray(currenciesResult.data)
+      ? currenciesResult.data.map((currency: any) => ({
+          value: String(currency.code),
+          label: `${String(currency.code)} (${String(currency.symbol || "")})`,
+        }))
+      : fallbackCurrencies;
+
+  return {
+    currencies: currencies.length > 0 ? currencies : fallbackCurrencies,
+    organizations:
+      organizationsResult.error || !Array.isArray(organizationsResult.data)
+        ? []
+        : organizationsResult.data.map((org: any) => ({
+            value: String(org.id),
+            label: String(org.name || "Unnamed Organization"),
+          })),
+    contacts:
+      contactsResult.error || !Array.isArray(contactsResult.data)
+        ? []
+        : contactsResult.data.map((contact: any) => ({
+            value: String(contact.id),
+            label: String(contact.name || "Unnamed Contact"),
+          })),
+    projects:
+      projectsResult.error || !Array.isArray(projectsResult.data)
+        ? []
+        : projectsResult.data.map((project: any) => ({
+            value: String(project.id),
+            label: String(project.title || "Untitled Project"),
+          })),
+  };
+}
+
+export async function getEntityFilterOptionsCached(
+  supabase: DbClient,
+): Promise<EntityFilterOptions> {
+  return getEntityFilterOptions(supabase);
+}
+
+export async function getOrganizationsIndexCached(supabase: DbClient) {
+  const { data: organizations, error } = await supabase
+      .from("organizations")
+      .select(
+        `
+        *,
+        contacts!inner(count)
+      `,
+      )
+      .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error("Failed to fetch organizations");
+  }
+
+  return (organizations || []).map((org: any) => ({
+    ...org,
+    contact_count: Array.isArray(org.contacts) ? org.contacts.length : 0,
+  }));
+}
+
+export async function getContactsIndexCached(supabase: DbClient) {
+  const { data: contacts, error } = await supabase
+      .from("contacts")
+      .select(
+        `
+        *,
+        organization:organizations(name, legal_name, country)
+      `,
+      )
+      .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error("Failed to fetch contacts");
+  }
+
+  return contacts || [];
+}
+
+export async function getProjectsIndexCached(supabase: DbClient) {
+  const { data: projects, error } = await supabase
+      .from("projects")
+      .select(
+        `
+        *,
+        organization:organizations(name, legal_name, country)
+      `,
+      )
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error("Failed to fetch projects");
+  }
+
+  return projects || [];
+}
+
+export async function getServicesIndexCached(supabase: DbClient) {
+  const { data: services, error } = await supabase
+      .from("services")
+      .select("*")
+      .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error("Failed to fetch services");
+  }
+
+  return services || [];
+}
+
+export async function getOffersIndexCached(supabase: DbClient) {
+  const { data: offers, error } = await supabase
+      .from("offers")
+      .select(
+        `
+        *,
+        organization:organizations(name, legal_name, country),
+        offer_services:offer_services(
+          id,
+          is_custom,
+          custom_title,
+          quantity,
+          services:service_id(
+            name,
+            icon
+          )
+        )
+      `,
+      )
+      .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error("Failed to fetch offers");
+  }
+
+  const offerIds = (offers || []).map((offer: any) => offer.id);
+  let visitCounts: { offer_id: string; accessed_email?: string }[] = [];
+
+  if (offerIds.length > 0) {
+    const { data } = await supabase
+      .from("offer_access_logs")
+      .select("offer_id, accessed_email")
+      .in("offer_id", offerIds);
+
+    visitCounts = ((data as any[]) || []).filter(
+      (log: any) =>
+        !log.accessed_email ||
+        (!log.accessed_email.endsWith("@envisioning.com") &&
+          !log.accessed_email.endsWith("@envisioning.io")),
+    );
+  }
+
+  const visitCountMap = new Map<string, number>();
+  visitCounts.forEach((log) => {
+    const count = visitCountMap.get(log.offer_id) || 0;
+    visitCountMap.set(log.offer_id, count + 1);
+  });
+
+  return (offers || []).map((offer: any) => {
+    const offerServices = offer.offer_services || [];
+    return {
+      ...offer,
+      services_count: Array.isArray(offerServices) ? offerServices.length : 0,
+      client_visits: visitCountMap.get(offer.id) || 0,
+    };
+  });
+}
+
+export async function getDashboardHomeDataCached(
+  supabase: DbClient,
+): Promise<DashboardHomeData> {
+  const [orgs, contacts, projects, offers] = await Promise.all([
+      supabase.from("organizations").select("*", { count: "exact", head: true }),
+      supabase.from("contacts").select("*", { count: "exact", head: true }),
+      supabase.from("projects").select("*", { count: "exact", head: true }),
+      supabase.from("offers").select("*", { count: "exact", head: true }),
+  ]);
+
+  const [
+    { data: activeProjects },
+    { data: offersForHistory },
+  ] = await Promise.all([
+    supabase
+      .from("projects")
+      .select(`
+          *,
+          organization:organizations(id, name)
+        `)
+      .eq("status", "Active")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("offers")
+      .select("id, total_amount, is_accepted, created_at, valid_until, currency"),
+  ]);
+
+  return {
+    stats: {
+      organizations: orgs.count ?? 0,
+      contacts: contacts.count ?? 0,
+      projects: projects.count ?? 0,
+      offers: offers.count ?? 0,
+    },
+    activeProjects: activeProjects || [],
+    offersForHistory: (offersForHistory || []) as DashboardHomeData["offersForHistory"],
+  };
+}
 
 // Cache tags for invalidation
 export const CACHE_TAGS = {

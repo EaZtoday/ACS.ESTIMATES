@@ -1,4 +1,5 @@
 import StaticEntityIndexWithToggle from "./static-entity-index-with-toggle";
+import type { EntityFilterOptions } from "@/lib/server-data";
 interface StaticEntityIndexPageProps {
   entity:
     | "organizations"
@@ -10,6 +11,7 @@ interface StaticEntityIndexPageProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any;
   items?: any[];
+  filterOptions: EntityFilterOptions;
 }
 
 const entityConfig = {
@@ -45,6 +47,7 @@ export default async function StaticEntityIndexPage({
   initial,
   supabase,
   items,
+  filterOptions,
 }: StaticEntityIndexPageProps) {
   const config = entityConfig[entity];
 
@@ -56,6 +59,7 @@ export default async function StaticEntityIndexPage({
       title={config.title}
       createLink={config.createLink}
       createButtonText={config.createButtonText}
+      filterOptions={filterOptions}
     />
   );
 }

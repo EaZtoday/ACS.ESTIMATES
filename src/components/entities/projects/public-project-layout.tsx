@@ -2,8 +2,8 @@
 
 import React from "react";
 import { formatDateLong, getOfferDisplayLabel } from "@/lib/utils";
-import { Calendar } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { Calendar, Code, CreditCard, Database, FileText, Lightbulb, Lock, Server } from "lucide-react";
+import { getLucideIconComponent } from "@/components/ui/composite/lucide-icons";
 
 interface PublicProjectLayoutProps {
   project: {
@@ -86,34 +86,31 @@ export default function PublicProjectLayout({
     groupType?: string,
     iconName?: string,
   ) => {
-    if (iconName && (LucideIcons as any)[iconName]) {
-      const Icon = (LucideIcons as any)[iconName] as React.ComponentType<{
-        size?: number;
-        className?: string;
-      }>;
+    if (iconName) {
+      const Icon = getLucideIconComponent(iconName, "FileText");
       return <Icon size={16} className="flex-shrink-0 text-neutral-500" />;
     }
     const name = (serviceName || "").toLowerCase();
     const group = groupType;
     if (name.includes("database") || name.includes("storage"))
-      return <LucideIcons.Database size={16} className="flex-shrink-0 text-neutral-500" />;
+      return <Database size={16} className="flex-shrink-0 text-neutral-500" />;
     if (name.includes("server") || name.includes("hosting"))
-      return <LucideIcons.Server size={16} className="flex-shrink-0 text-neutral-500" />;
+      return <Server size={16} className="flex-shrink-0 text-neutral-500" />;
     if (name.includes("development") || name.includes("code"))
-      return <LucideIcons.Code size={16} className="flex-shrink-0 text-neutral-500" />;
+      return <Code size={16} className="flex-shrink-0 text-neutral-500" />;
     if (name.includes("license") || name.includes("subscription"))
-      return <LucideIcons.Lock size={16} className="flex-shrink-0 text-neutral-500" />;
+      return <Lock size={16} className="flex-shrink-0 text-neutral-500" />;
     switch (group) {
       case "Base":
-        return <LucideIcons.Database size={16} className="flex-shrink-0 text-neutral-500" />;
+        return <Database size={16} className="flex-shrink-0 text-neutral-500" />;
       case "Optional":
-        return <LucideIcons.CreditCard size={16} className="flex-shrink-0 text-neutral-500" />;
+        return <CreditCard size={16} className="flex-shrink-0 text-neutral-500" />;
       case "License":
-        return <LucideIcons.Lock size={16} className="flex-shrink-0 text-neutral-500" />;
+        return <Lock size={16} className="flex-shrink-0 text-neutral-500" />;
       case "Research":
-        return <LucideIcons.Lightbulb size={16} className="flex-shrink-0 text-neutral-500" />;
+        return <Lightbulb size={16} className="flex-shrink-0 text-neutral-500" />;
       default:
-        return <LucideIcons.FileText size={16} className="flex-shrink-0 text-neutral-500" />;
+        return <FileText size={16} className="flex-shrink-0 text-neutral-500" />;
     }
   };
 

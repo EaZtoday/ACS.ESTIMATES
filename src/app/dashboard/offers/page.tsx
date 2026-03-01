@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import StaticEntityIndexPage from "@/components/features/entities/static-entity-index-page";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  getEntityFilterOptionsCached,
+  getOffersIndexCached,
+} from "@/lib/server-data";
 import { createSearchParamsCache, parseAsString } from "nuqs/server";
 import { generatePageTitle } from "@/lib/metadata-utils";
 
@@ -42,72 +46,10 @@ export default async function OffersPage({
     initial = {};
   }
 
-  // Fetch data directly using Supabase (not cached functions)
-  const { data: offers, error } = await supabase
-    .from("offers")
-    .select(
-      `
-      *,
-      organization:organizations(name, legal_name, country),
-      offer_services:offer_services(
-        id,
-        is_custom,
-        custom_title,
-        quantity,
-        services:service_id(
-          name,
-          icon
-        )
-      )
-    `,
-    )
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching offers:", error);
-    throw new Error("Failed to fetch offers");
-  }
-
-  // Fetch visit counts excluding @envisioning emails
-  const offerIds = (offers || []).map((offer: any) => offer.id);
-  let visitCounts: { offer_id: string; accessed_email?: string }[] = [];
-
-  if (offerIds.length > 0) {
-    const { data } = await supabase
-      .from("offer_access_logs")
-      .select("offer_id, accessed_email")
-      .in("offer_id", offerIds);
-
-    // Filter out @envisioning.com and @envisioning.io emails
-    visitCounts = ((data as any[]) || []).filter(
-      (log: any) =>
-        !log.accessed_email ||
-        (!log.accessed_email.endsWith("@envisioning.com") &&
-          !log.accessed_email.endsWith("@envisioning.io")),
-    );
-  }
-
-  // Create a map of offer_id to visit count
-  const visitCountMap = new Map<string, number>();
-  visitCounts.forEach((log) => {
-    const count = visitCountMap.get(log.offer_id) || 0;
-    visitCountMap.set(log.offer_id, count + 1);
-  });
-
-  // Transform the data to include services count and visit count
-  const items = (offers || []).map((offer: any) => {
-    const offerServices = offer.offer_services || [];
-
-    const servicesCount = Array.isArray(offerServices)
-      ? offerServices.length
-      : 0;
-
-    return {
-      ...offer,
-      services_count: servicesCount,
-      client_visits: visitCountMap.get(offer.id) || 0,
-    };
-  });
+  const [items, filterOptions] = await Promise.all([
+    getOffersIndexCached(supabase),
+    getEntityFilterOptionsCached(supabase),
+  ]);
 
   return (
     <StaticEntityIndexPage
@@ -115,6 +57,7 @@ export default async function OffersPage({
       supabase={supabase as any}
       initial={initial}
       items={items}
+      filterOptions={filterOptions}
     />
   );
 }

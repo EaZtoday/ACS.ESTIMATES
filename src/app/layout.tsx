@@ -5,11 +5,8 @@ import "../lib/error-handler";
 import CSSLogger from "@/components/utils/css-logger";
 import { Toaster } from "@/components/ui/feedback/toaster";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { CommandPaletteProvider } from "@/components/providers/command-palette-provider";
-import { FloatingSearchButton } from "@/components/ui/navigation/floating-search-button";
 import { ConditionalFloatingSearchButton } from "@/components/ui/navigation/conditional-floating-search-button";
 import SWRProvider from "@/providers/swr-provider";
-import { getCommandPaletteInitialData } from "@/lib/actions/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geistSans = Geist({
@@ -70,15 +67,12 @@ export const viewport = {
   themeColor: "#d6f249",
 };
 
-export const dynamic = "force-dynamic";
-
 // Server component
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const commandPaletteData = await getCommandPaletteInitialData();
   return (
     <html
       lang="en"
@@ -134,14 +128,12 @@ export default async function RootLayout({
         <NuqsAdapter>
           <ThemeProvider>
             <SWRProvider>
-              <CommandPaletteProvider initialData={commandPaletteData}>
-                <CSSLogger />
-                <div className="min-h-screen w-full overflow-x-hidden">
-                  {children}
-                </div>
-                <Toaster />
-                <ConditionalFloatingSearchButton />
-              </CommandPaletteProvider>
+              <CSSLogger />
+              <div className="min-h-screen w-full overflow-x-hidden">
+                {children}
+              </div>
+              <Toaster />
+              <ConditionalFloatingSearchButton />
             </SWRProvider>
           </ThemeProvider>
         </NuqsAdapter>

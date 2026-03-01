@@ -38,11 +38,24 @@ export function useLinkedData(options: UseLinkedDataOptions) {
     setIsLoading(true);
 
     try {
-      const { data: contacts } = await supabase
-        .from("contacts")
-        .select("id, name, email, company_role")
-        .eq("organization_id", organizationId)
-        .order("name");
+      const [{ data: contacts }, { data: projects }, { data: offers }] =
+        await Promise.all([
+          supabase
+            .from("contacts")
+            .select("id, name, email, company_role")
+            .eq("organization_id", organizationId)
+            .order("name"),
+          supabase
+            .from("projects")
+            .select("id, title, status")
+            .eq("organization_id", organizationId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("offers")
+            .select("id, title, status")
+            .eq("organization_id", organizationId)
+            .order("created_at", { ascending: false }),
+        ]);
 
       setLinkedContacts(
         ((contacts as any[]) || []).map((contact) => ({
@@ -50,14 +63,8 @@ export function useLinkedData(options: UseLinkedDataOptions) {
           name: contact.name,
           href: `/dashboard/contacts/${contact.id}`,
           subtitle: contact.email,
-        }))
+        })),
       );
-
-      const { data: projects } = await supabase
-        .from("projects")
-        .select("id, title, status")
-        .eq("organization_id", organizationId)
-        .order("created_at", { ascending: false });
 
       setLinkedProjects(
         ((projects as any[]) || []).map((project) => ({
@@ -65,14 +72,8 @@ export function useLinkedData(options: UseLinkedDataOptions) {
           name: project.title,
           href: `/dashboard/projects/${project.id}`,
           tag: project.status,
-        }))
+        })),
       );
-
-      const { data: offers } = await supabase
-        .from("offers")
-        .select("id, title, status")
-        .eq("organization_id", organizationId)
-        .order("created_at", { ascending: false });
 
       setLinkedOffers(
         ((offers as any[]) || []).map((offer) => ({
@@ -80,7 +81,7 @@ export function useLinkedData(options: UseLinkedDataOptions) {
           name: getOfferDisplayLabel(offer),
           href: `/dashboard/offers/${offer.id}`,
           tag: offer.status,
-        }))
+        })),
       );
     } catch (error) {
       console.error("Error fetching linked data:", error);

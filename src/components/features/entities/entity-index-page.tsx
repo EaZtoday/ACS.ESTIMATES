@@ -3,7 +3,7 @@ import { EntityErrorBoundary } from "@/components/error-boundaries/entity-error-
 import { PageContentSkeleton } from "@/components/layouts/pages/page-layout";
 import EntityIndexClient from "./entity-index-client";
 import { createSearchParamsCache, parseAsString } from "nuqs/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { getEntityFilterOptionsCached } from "@/lib/server-data";
 
 type EntityType =
   | "organizations"
@@ -64,6 +64,7 @@ async function EntityIndexContent({
   initial?: Record<string, string>;
   supabase: any;
 }) {
+  const filterOptions = await getEntityFilterOptionsCached(supabase);
   if (entity === "organizations") {
     const { data: organizations } = await supabase
       .from("organizations")
@@ -79,6 +80,7 @@ async function EntityIndexContent({
         entity={entity}
         items={organizations || []}
         initial={initial}
+        filterOptions={filterOptions}
       />
     );
   }
@@ -97,6 +99,7 @@ async function EntityIndexContent({
         entity={entity}
         items={contacts || []}
         initial={initial}
+        filterOptions={filterOptions}
       />
     );
   }
@@ -115,6 +118,7 @@ async function EntityIndexContent({
         entity={entity}
         items={projects || []}
         initial={initial}
+        filterOptions={filterOptions}
       />
     );
   }
@@ -128,6 +132,7 @@ async function EntityIndexContent({
         entity={entity}
         items={services || []}
         initial={initial}
+        filterOptions={filterOptions}
       />
     );
   }
@@ -181,6 +186,7 @@ async function EntityIndexContent({
         entity={entity}
         items={offersWithServicesCount}
         initial={initial}
+        filterOptions={filterOptions}
       />
     );
   }

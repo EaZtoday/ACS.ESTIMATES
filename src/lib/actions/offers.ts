@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { offerService } from "@/lib/api/offers";
 import type { Offer } from "@/lib/api/offers";
@@ -137,6 +137,8 @@ export async function createOffer(
 
     // Revalidate paths and redirect
     revalidatePath("/dashboard/offers");
+    revalidateTag("offers", "max");
+    revalidateTag("dashboard", "max");
     redirect("/dashboard/offers");
   } catch (error) {
     return handleFailedAction(handleActionError(error));
@@ -285,6 +287,8 @@ export async function updateOffer(
     // Revalidate paths and redirect
     revalidatePath("/dashboard/offers");
     revalidatePath(`/dashboard/offers/${offerId}`);
+    revalidateTag("offers", "max");
+    revalidateTag("dashboard", "max");
     redirect("/dashboard/offers");
   } catch (error) {
     return handleFailedAction(handleActionError(error));
@@ -306,6 +310,8 @@ export async function deleteOffer(
     
     // Revalidate paths
     revalidatePath("/dashboard/offers");
+    revalidateTag("offers", "max");
+    revalidateTag("dashboard", "max");
     
     return createActionResponse({ success: true });
   } catch (error) {

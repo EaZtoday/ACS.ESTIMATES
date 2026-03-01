@@ -47,6 +47,14 @@ import {
   Github,
   Linkedin,
   Twitter,
+  Brain,
+  Bot,
+  Info,
+  CheckCircle2,
+  Server,
+  Code,
+  Lock,
+  Lightbulb,
 } from "lucide-react";
 
 export interface LucideIconOption {
@@ -104,6 +112,14 @@ export const LUCIDE_ICON_OPTIONS: LucideIconOption[] = [
   { name: "Github", Icon: Github, keywords: ["code", "repo"] },
   { name: "Linkedin", Icon: Linkedin, keywords: ["social"] },
   { name: "Twitter", Icon: Twitter, keywords: ["social", "x"] },
+  { name: "Brain", Icon: Brain, keywords: ["ai", "intelligence"] },
+  { name: "Bot", Icon: Bot, keywords: ["automation", "agent"] },
+  { name: "Info", Icon: Info, keywords: ["details", "more"] },
+  { name: "CheckCircle2", Icon: CheckCircle2, keywords: ["accept", "success"] },
+  { name: "Server", Icon: Server, keywords: ["hosting", "backend"] },
+  { name: "Code", Icon: Code, keywords: ["development", "software"] },
+  { name: "Lock", Icon: Lock, keywords: ["license", "security"] },
+  { name: "Lightbulb", Icon: Lightbulb, keywords: ["idea", "research"] },
 ];
 
 export function getLucideIconOption(name?: string | null): LucideIconOption | null {
@@ -111,4 +127,15 @@ export function getLucideIconOption(name?: string | null): LucideIconOption | nu
   return LUCIDE_ICON_OPTIONS.find((opt) => opt.name === name) || null;
 }
 
+export function getLucideIconComponent(
+  name?: string | null,
+  fallback: string = "Package",
+) {
+  if (name) {
+    const direct = getLucideIconOption(name);
+    if (direct) return direct.Icon;
+  }
+  const fallbackIcon = getLucideIconOption(fallback);
+  return fallbackIcon?.Icon || Package;
+}
 

@@ -12,13 +12,9 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/navigation/command";
-import { usePathname } from "next/navigation";
 import { getDashboardNavigation } from "@/lib/navigation-config";
-import { useContacts } from "@/hooks/use-contacts";
-import { fetcher } from "@/lib/fetchers";
 import { ProfileImage } from "@/components/ui/data-display/profile-image";
 import { SETTINGS_GROUPS } from "@/components/features/settings/settings.config";
-import { getOfferDisplayLabel } from "@/lib/utils";
 import { Settings } from "lucide-react";
 
 interface CommandPaletteProps {
@@ -43,40 +39,14 @@ interface ContentItem {
   fallback?: string;
 }
 
-interface ApiOrganization {
-  id: string;
-  name?: string;
-  legal_name?: string;
-  country?: string;
-  profile_image_url?: string | null;
-}
-
-interface ApiProject {
-  id: string;
-  title: string;
-  status?: string;
-}
-
-interface ApiOffer {
-  id: string;
-  title?: string;
-  status?: string;
-}
-
-interface ApiService {
-  id: string;
-  name: string;
-  description?: string;
-}
-
 export function CommandPalette({
   open,
   onOpenChange,
   initialData,
 }: CommandPaletteProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const [search, setSearch] = React.useState("");
+  const [isSearching, setIsSearching] = React.useState(false);
 
   const navigationItems = React.useMemo(() => {
     return getDashboardNavigation();
@@ -96,76 +66,57 @@ export function CommandPalette({
     services: initialData?.services ?? [],
   });
 
-  const { contacts } = useContacts({ enabled: !initialData });
-
   React.useEffect(() => {
-    if (!initialData && contacts.length > 0) {
-      setContentData((prev) => ({
-        ...prev,
-        contacts: contacts.map((contact) => ({
-          id: contact.id,
-          name: contact.name,
-          href: `/dashboard/contacts/${contact.id}`,
-          description: contact.email || contact.company_role,
-          imageUrl: contact.profile_image_url || undefined,
-          fallback: contact.name,
-        })),
-      }));
+    if (!open) return;
+    const query = search.trim();
+
+    if (initialData) {
+      setContentData(initialData);
+      return;
     }
-  }, [contacts, initialData]);
 
-  React.useEffect(() => {
-    if (initialData) return;
+    if (query.length < 2) {
+      setContentData({
+        organizations: [],
+        contacts: [],
+        projects: [],
+        offers: [],
+        services: [],
+      });
+      return;
+    }
 
-    const fetchContentData = async () => {
+    const abortController = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
       try {
-        const [organizations, projects, offers, services] = await Promise.all([
-          fetcher("/api/organizations"),
-          fetcher("/api/projects"),
-          fetcher("/api/offers"),
-          fetcher("/api/services"),
-        ]);
-
-        setContentData((prev) => ({
-          ...prev,
-          organizations: (organizations as ApiOrganization[]).map((org) => ({
-            id: org.id,
-            name: org.name || org.legal_name || "Unnamed Organization",
-            href: `/dashboard/organizations/${org.id}`,
-            description: org.legal_name || org.country,
-            imageUrl: org.profile_image_url || undefined,
-            fallback: org.name || org.legal_name || "?",
-          })),
-          projects: (projects as ApiProject[]).map((project) => ({
-            id: project.id,
-            name: project.title,
-            href: `/dashboard/projects/${project.id}`,
-            description: project.status,
-            status: project.status,
-          })),
-          offers: (offers as ApiOffer[]).map((offer) => ({
-            id: offer.id,
-            name: getOfferDisplayLabel(
-              offer as Parameters<typeof getOfferDisplayLabel>[0],
-            ),
-            href: `/dashboard/offers/${offer.id}`,
-            description: offer.status,
-            status: offer.status,
-          })),
-          services: (services as ApiService[]).map((service) => ({
-            id: service.id,
-            name: service.name,
-            href: `/dashboard/services/${service.id}`,
-            description: service.description,
-          })),
-        }));
+        setIsSearching(true);
+        const response = await fetch(
+          `/api/search/command-palette?q=${encodeURIComponent(query)}&limit=8`,
+          { signal: abortController.signal },
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to search command palette: ${response.status}`);
+        }
+        const payload = (await response.json()) as typeof contentData;
+        setContentData(payload);
       } catch (err) {
-        console.error("Error fetching content data:", err);
+        if (
+          err instanceof Error &&
+          (err.name === "AbortError" || err.message.includes("aborted"))
+        ) {
+          return;
+        }
+        console.error("Error searching command palette:", err);
+      } finally {
+        setIsSearching(false);
       }
-    };
+    }, 150);
 
-    fetchContentData();
-  }, [initialData]);
+    return () => {
+      window.clearTimeout(timeoutId);
+      abortController.abort();
+    };
+  }, [open, search, initialData]);
 
   const handleSelect = (value: string) => {
     router.push(value);
@@ -205,7 +156,7 @@ export function CommandPalette({
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <div className="relative flex items-center w-full">
         <CommandInput
-          placeholder="Search"
+          placeholder="Search (type at least 2 characters)"
           value={search}
           onValueChange={setSearch}
         />
@@ -219,7 +170,7 @@ export function CommandPalette({
       <CommandList className="max-h-[400px]">
         <CommandEmpty>
           <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-            No results found.
+            {isSearching ? "Searching..." : "No results found."}
           </div>
         </CommandEmpty>
 

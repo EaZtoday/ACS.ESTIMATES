@@ -35,6 +35,8 @@ export async function createContact(
     // Revalidate paths
     revalidateTag('contacts', 'max');
     revalidateTag('organizations', 'max'); // Since contacts affect org contact counts
+    revalidateTag('dashboard', 'max');
+    revalidateTag('settings', 'max');
     
     // Return success response instead of redirecting
     return createActionResponse({ success: true, message: "Contact created successfully" });
@@ -77,6 +79,8 @@ export async function updateContact(
     // Revalidate paths
     revalidateTag('contacts', 'max');
     revalidateTag('organizations', 'max'); // Since contacts affect org contact counts
+    revalidateTag('dashboard', 'max');
+    revalidateTag('settings', 'max');
     
     return createActionResponse({ success: true, message: "Contact updated successfully" });
   } catch (error) {
@@ -106,6 +110,8 @@ export async function deleteContact(
     // Revalidate paths
     revalidateTag('contacts', 'max');
     revalidateTag('organizations', 'max'); // Since contacts affect org contact counts
+    revalidateTag('dashboard', 'max');
+    revalidateTag('settings', 'max');
     
     return createActionResponse({ success: true, message: "Contact deleted successfully" });
   } catch (error) {

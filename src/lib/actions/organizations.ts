@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { organizationService } from "@/lib/api/organizations";
 import { organizationCreateSchema, organizationUpdateSchema } from "@/lib/validation/schemas";
 import {
@@ -34,6 +34,10 @@ export async function createOrganization(
 
     // Revalidate paths
     revalidatePath("/dashboard/organizations");
+    revalidateTag("organizations", "max");
+    revalidateTag("contacts", "max");
+    revalidateTag("dashboard", "max");
+    revalidateTag("settings", "max");
 
     // Return success response instead of redirecting
     return createActionResponse({ success: true, message: "Organization created successfully" });
@@ -87,6 +91,10 @@ export async function updateOrganization(
     // Revalidate paths
     revalidatePath("/dashboard/organizations");
     revalidatePath(`/dashboard/organizations/${organizationId}`);
+    revalidateTag("organizations", "max");
+    revalidateTag("contacts", "max");
+    revalidateTag("dashboard", "max");
+    revalidateTag("settings", "max");
 
     // Return success response instead of redirecting
     return createActionResponse({ success: true, message: "Organization updated successfully" });
@@ -110,6 +118,10 @@ export async function deleteOrganization(
     
     // Revalidate paths
     revalidatePath("/dashboard/organizations");
+    revalidateTag("organizations", "max");
+    revalidateTag("contacts", "max");
+    revalidateTag("dashboard", "max");
+    revalidateTag("settings", "max");
     
     return createActionResponse({ success: true, message: "Organization deleted successfully" });
   } catch (error) {

@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Checkbox } from "@/components/ui/primitives/checkbox";
-import * as Icons from "lucide-react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetchers";
+import { getLucideIconOption } from "@/components/ui/composite/lucide-icons";
 
 interface LinkPreset {
   id: string;
@@ -17,13 +17,7 @@ interface LinkPreset {
 }
 
 function IconPreview({ name }: { name?: string | null }) {
-  if (!name) return null;
-  const Icon = (
-    Icons as unknown as Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    >
-  )[name];
+  const Icon = getLucideIconOption(name)?.Icon;
   return Icon ? <Icon className="h-4 w-4" /> : null;
 }
 

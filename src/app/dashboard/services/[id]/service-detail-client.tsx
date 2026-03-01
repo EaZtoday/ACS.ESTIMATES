@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Edit, Trash2, Package, ExternalLink } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 import { Service } from "@/lib/api/services";
 import { formatServicePrice, formatDateTime } from "@/lib/utils";
 import { PageLoader } from "@/components/ui/primitives/page-loader";
 import { ConfirmDialog } from "@/components/ui/navigation";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetchers";
+import { getLucideIconOption } from "@/components/ui/composite/lucide-icons";
 
 interface ServiceDetailClientProps {
   id: string;
@@ -107,12 +107,7 @@ export default function ServiceDetailClient({ id }: ServiceDetailClientProps) {
               {(() => {
                 // Prefer Lucide icon names first
                 if (service.icon) {
-                  const IconComponent = (
-                    LucideIcons as unknown as Record<
-                      string,
-                      React.ComponentType<{ className?: string }>
-                    >
-                  )[service.icon];
+                  const IconComponent = getLucideIconOption(service.icon)?.Icon;
                   if (IconComponent) {
                     return <IconComponent className="h-8 w-8" />;
                   }

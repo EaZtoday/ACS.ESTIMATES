@@ -39,6 +39,7 @@ export async function createService(
 
     // Revalidate paths
     revalidateTag('services', 'max');
+    revalidateTag('offers', 'max');
 
     // Return success response instead of redirecting
     return createActionResponse(service, null);
@@ -80,6 +81,7 @@ export async function updateService(
     // Revalidate paths
     revalidateTag('services', 'max');
     revalidateTag(`/dashboard/services/${serviceId}`, 'max');
+    revalidateTag('offers', 'max');
 
     // Return success response instead of redirecting
     return createActionResponse(service, null);
@@ -103,6 +105,7 @@ export async function deleteService(
     
     // Revalidate paths
     revalidateTag('services', 'max');
+    revalidateTag('offers', 'max');
     
     return createActionResponse({ success: true });
   } catch (error) {
@@ -154,6 +157,7 @@ export async function createServiceAction(formData: FormData) {
     
     // Revalidate cache tags
     revalidateTag('services', 'max');
+    revalidateTag('offers', 'max');
     
     return { success: true, data: created } as const;
   } catch (error) {
@@ -179,6 +183,7 @@ export async function updateServiceAction(serviceId: string, formData: FormData)
     
     // Revalidate cache tags
     revalidateTag('services', 'max');
+    revalidateTag('offers', 'max');
     
     return { success: true, data: updated } as const;
   } catch (error) {
@@ -199,6 +204,7 @@ export async function deleteServiceAction(serviceId: string) {
     
     // Revalidate cache tags
     revalidateTag('services', 'max');
+    revalidateTag('offers', 'max');
     
     return { success: true } as const;
   } catch (error) {
