@@ -12,6 +12,15 @@ import { createJob } from "@/lib/actions/jobs";
 
 type Tier = 'basic' | 'standard' | 'premium';
 
+const validatePhone = (phone: string): boolean => {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length === 10;
+};
+
+const validateZip = (zip: string): boolean => {
+  return /^\d{5}$/.test(zip.trim());
+};
+
 export default function CalculatorPage() {
   const [selectedTier, setSelectedTier] = useState<Tier>('basic');
   const [windowCount, setWindowCount] = useState<number>(0);
@@ -46,34 +55,35 @@ export default function CalculatorPage() {
   };
 
   const handleSave = async () => {
-    if (!customerInfo.name || !customerInfo.phone) {
-      toast.error("Client name and phone are required");
+    if (!customerInfo.name || !customerInfo.name.trim()) {
+      toast.error("Client name is required");
+      return;
+    }
+    if (!customerInfo.phone || !customerInfo.phone.trim()) {
+      toast.error("Phone number is required");
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Create/Update Customer
-      const customer = await createCustomer(null, (function() {
+      const customerResponse = await createCustomer(null, (function() {
         const fd = new FormData();
-        fd.append("name", customerInfo.name);
-        fd.append("phone", customerInfo.phone);
-        fd.append("address_line_1", customerInfo.address);
+        fd.append("name", customerInfo.name.trim());
+        fd.append("phone", customerInfo.phone.trim());
+        fd.append("address_line_1", customerInfo.address.trim());
         return fd;
       })());
 
-      // Note: createCustomer in core-oss returns ActionResponse.
-      // For MVP, I'll assume it works if no error is thrown or check response.
-      
-      // 2. Create Job/Estimate
+      if (!customerResponse.success || !(customerResponse as any).data?.id) {
+        toast.error(`Failed to save customer: ${customerResponse.message || 'Unknown error'}`);
+        setLoading(false);
+        return;
+      }
+
       const total = calculateTotal();
-      await createJob(null, (function() {
+      const jobResponse = await createJob(null, (function() {
         const fd = new FormData();
-        // Since I don't have the customer ID from the action response easily here (without changing the action),
-        // I'll assume we lookup or the action should return it.
-        // In michellzappa's core-oss, actions return data.
-        
-        fd.append("customer_id", (customer as any).data?.id); 
+        fd.append("customer_id", (customerResponse as any).data.id);
         fd.append("type", "estimate");
         fd.append("service_type", "Window Cleaning");
         fd.append("panes_count", windowCount.toString());
@@ -82,10 +92,16 @@ export default function CalculatorPage() {
         return fd;
       })());
 
+      if (!jobResponse.success) {
+        toast.error(`Failed to save estimate: ${jobResponse.message || 'Unknown error'}`);
+        setLoading(false);
+        return;
+      }
+
       toast.success("Estimate saved to CRM!");
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to save estimate");
+      console.error("Unexpected error:", error);
+      toast.error("Unexpected error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -118,7 +134,15 @@ export default function CalculatorPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Phone Number</Label>
-                  <Input value={customerInfo.phone} onChange={e => setCustomerInfo({...customerInfo, phone: e.target.value})} placeholder="(555) 000-0000" />
+                  <Input
+                    value={customerInfo.phone}
+                    onChange={e => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                    placeholder="(570) 614-9595"
+                    className={!validatePhone(customerInfo.phone) && customerInfo.phone ? "border-red-500" : ""}
+                  />
+                  {customerInfo.phone && !validatePhone(customerInfo.phone) && (
+                    <p className="text-xs text-red-500">Phone must be 10 digits</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -254,7 +278,26 @@ export default function CalculatorPage() {
               <Button onClick={handleSave} className="w-full h-14 bg-teal-500 text-slate-900 font-bold text-lg hover:bg-teal-400" disabled={loading}>
                 {loading ? "SAVING..." : "SAVE TO CRM"}
               </Button>
-              <Button variant="outline" className="w-full bg-transparent border-slate-700 hover:bg-slate-800">
+              <Button
+                variant="outline"
+                className="w-full bg-transparent border-slate-700 hover:bg-slate-800"
+                onClick={() => {
+                  const doc = {
+                    name: customerInfo.name,
+                    phone: customerInfo.phone,
+                    address: customerInfo.address,
+                    selectedTier,
+                    windowCount,
+                    override,
+                    pwPrice,
+                    gutterPrice,
+                    otherPrice,
+                    total: calculateTotal()
+                  };
+                  console.log('PDF export:', doc);
+                  toast.info("PDF export coming soon!");
+                }}
+              >
                 DOWNLOAD PDF
               </Button>
               <p className="text-[10px] text-slate-500 text-center mt-4">

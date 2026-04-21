@@ -30,7 +30,7 @@ export async function createCustomer(
       ...validation.data,
     };
 
-    await customerService.create(customerData);
+    const createdCustomer = await customerService.create(customerData);
 
     // Revalidate paths
     revalidateTag('customers', 'max');
@@ -38,8 +38,7 @@ export async function createCustomer(
     revalidateTag('dashboard', 'max');
     revalidateTag('settings', 'max');
     
-    // Return success response instead of redirecting
-    return createActionResponse({ success: true, message: "Customer created successfully" });
+    return createActionResponse({ success: true, message: "Customer created successfully", data: createdCustomer });
   } catch (error) {
     // Handle duplicate email constraint error specifically
     const duplicateMessage = getDuplicateConstraintMessage(error, "email address");
