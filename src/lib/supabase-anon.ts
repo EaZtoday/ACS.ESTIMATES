@@ -7,7 +7,7 @@ import { Database } from "@/lib/database.types";
 // Use this for public-facing routes (e.g. public offer view).
 export function createAnonSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
   return createClient<Database>(url, anonKey, {
     auth: { persistSession: false },
