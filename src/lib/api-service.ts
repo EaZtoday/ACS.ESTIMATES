@@ -9,6 +9,7 @@ export type TableName =
   | 'organizations'
   | 'customers'
   | 'jobs'
+  | 'appointments'
   | 'offers'
   | 'services'
   | 'offer_services'

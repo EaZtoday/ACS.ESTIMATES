@@ -59,16 +59,7 @@ export async function updateJob(
     }
 
     // Update the job (validation.data is already properly typed)
-    const updateData = {
-      ...validation.data,
-      // Convert null values to undefined for the service
-      description: validation.data.description || undefined,
-      url: validation.data.url || undefined,
-      organization_id: validation.data.organization_id || undefined,
-      start_date: validation.data.start_date || undefined,
-      end_date: validation.data.end_date || undefined,
-    };
-    const job = await jobService.update(jobId, updateData);
+    const job = await jobService.update(jobId, validation.data);
 
     // Revalidate paths
     revalidatePath("/dashboard/jobs");

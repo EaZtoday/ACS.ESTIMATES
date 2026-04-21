@@ -342,6 +342,8 @@ export const getDashboardData = unstable_cache(
       offersResult,
       servicesResult,
       jobsResult,
+      appointmentsResult,
+      messagesResult,
     ] = await Promise.all([
       supabase
         .from('organizations')

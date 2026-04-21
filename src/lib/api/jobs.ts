@@ -83,32 +83,6 @@ class JobService extends ApiService<Job> {
       throw error;
     }
   }
-
-  async create(data: CreateJobInput): Promise<Job> {
-    try {
-      const jobData = {
-        ...data,
-        status: data.status || 'estimate_requested',
-        type: data.type || 'estimate'
-      };
-
-      const supabase = await createServerSupabaseClient();
-      const { data: job, error } = await (supabase as any)
-        .from('jobs')
-        .insert(jobData)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return job as Job;
-    } catch (error) {
-      console.error('Error creating job:', error);
-      throw error;
-    }
-  }
 }
 
 export const jobService = new JobService();

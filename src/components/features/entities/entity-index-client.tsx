@@ -16,9 +16,11 @@ import {
   Copy,
   Check,
   X,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/primitives/button";
+import { Badge } from "@/components/ui/primitives/badge";
 import { StatusPill } from "@/components/ui/feedback/status-pill";
 import {
   formatDate,
@@ -26,7 +28,7 @@ import {
   getOfferDisplayLabel,
 } from "@/lib/utils";
 import { ProfileImage } from "@/components/ui/data-display/profile-image";
-import { CustomerCharacteristics } from "@/components/ui/data-display/customer-characteristics";
+import { CustomerCharacteristics } from "@/components/ui/data-display/contact-characteristics";
 import { getCountryNameAndFlag } from "@/lib/countries";
 import { getIndustryName } from "@/lib/industries";
 import { Package } from "lucide-react";
