@@ -6,6 +6,20 @@
 
 ---
 
+## 🚦 DEPLOYMENT RULE — AG vs Claude Code (read before pushing)
+
+**Background (2026-04-21).** Every Vercel deploy pushed from an Antigravity (AG) session returned a 404. Same code pushed from a Claude Code session deployed fine. Root cause: AG is authenticated to GitHub as `zarnoffk-jpg` (personal account, no deploy rights on this project). Claude Code is authenticated as `EaZtoday` (the org). Vercel reads the **GitHub pusher identity** — not the commit author — for deploy attribution, and rejects pushes from `zarnoffk-jpg`.
+
+**The rule:**
+
+1. **AG works on `ag/*` feature branches only. Never on `main`.**
+2. **Only Claude Code merges to `main`.** Before merging, Claude Code must add at least one commit of its own (even a trivial doc tweak or lint pass). That re-attributes the push to `EaZtoday` and unblocks Vercel.
+3. **`main` is the only branch Vercel deploys from.** The Hobby plan already enforces this — feature branches can't deploy anyway, which makes the rule self-policing.
+
+If you are a Claude agent running inside an AG session and you're about to push to `main`: **stop.** Push to `ag/<topic>` and open a PR for Claude Code to review and merge.
+
+---
+
 ## 🏢 What Is This Project?
 
 This is **Alexander's Cleaning – Window Cleaning CRM**, a domain-specialized fork
