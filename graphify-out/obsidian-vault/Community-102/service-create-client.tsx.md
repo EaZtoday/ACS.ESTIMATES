@@ -1,0 +1,12 @@
+---
+id: "c_users_zarny_acs_estimates_repo_src_app_dashboard_services_new_service_create_client_tsx"
+label: "service-create-client.tsx"
+file_type: code
+community: 102
+source_file: "C:\Users\zarny\acs-estimates-repo\src\app\dashboard\services\new\service-create-client.tsx"
+source_location: "L1"
+---
+
+# service-create-client.tsx
+
+**Source:** `C:\Users\zarny\acs-estimates-repo\src\app\dashboard\services\new\service-create-client.tsx` L1
